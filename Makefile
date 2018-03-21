@@ -11,6 +11,8 @@ GramSchmidt.o: GramSchmidt.c
 
 davidson.o: diagonalization.o GramSchmidt.o davidson.c  
 	${CC} ${CFLAGS} ${INCLUDEDIR}  $*.c -c
+dot.o: dot.c  
+	${CC} ${CFLAGS} ${INCLUDEDIR}  $*.c -c
 
 davidson_drv: davidson_drv.c davidson.o GramSchmidt.o diagonalization.o
 	${CC} ${CFLAGS} ${INCLUDEDIR}   diagonalization.o davidson.o davidson_drv.c -o $@ $(CPPFLAGS) $(LDFLAGS)  $(LAPACKLIB) $(BLASLIB) $(F2CLIB) -lm
