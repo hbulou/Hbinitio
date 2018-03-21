@@ -68,12 +68,6 @@ int main(int nargument,char **argument){
 
   int i,j,k,l;
   double **v;v=malloc(nvecini*sizeof(double*)); for(i=0;i<nvecini;i++) v[i]=malloc(N*sizeof(double));
-  double norm;
-  double *alpha;
-
-
-
-
 
   int nvec0,nvec1;nvec0=1;nvec1=1;
   double **set0,*set1;
@@ -83,7 +77,7 @@ int main(int nargument,char **argument){
 
 
   int loop;
-  for(loop=1;loop<10;loop++){
+  for(loop=1;loop<nvecini;loop++){
     set1=set_random_vector(N,1000*(j+3*loop));
     vec2=GramSchmidt(N,set0,nvec0,set1);
     free(set1);
@@ -104,46 +98,10 @@ int main(int nargument,char **argument){
   }
   
   
-  exit(0);
+
   
   
-
-  /* --------------------------------------------------------
-     first, one initializes the first vectors of the subspace
-     In the present version, They are set randomly.
-     They are also normalized.
-  ----------------------------------------------------------*/
-  for(j=0;j<nvecini;j++){
-    norm=0.0;
-    for(i=0;i<N;i++) {
-      v[j][i]=1.0*rand()/RAND_MAX;
-      norm+=v[j][i]*v[j][i];
-    }
-    norm=pow(norm,.5);
-    for(i=0;i<N;i++)     v[j][i]/=norm;
-    norm=0.0;  for(i=0;i<N;i++)     norm+=v[j][i]*v[j][i];
-    norm=pow(norm,.5);
-  }
-  if(nvecini>1){		/* Gram-Schmidt process if the iitial size of the subspace is larger than 1*/
-    alpha=malloc((nvecini-1)*sizeof(double));
-    for(j=1;j<nvecini;j++){
-      for(k=0;k<j;k++) {
-	alpha[k]=0.0;
-	for(l=0;l<N;l++) alpha[k]+=v[k][l]*v[j][l];
-      }
-      for(k=0;k<j;k++) {
-	for(l=0;l<N;l++) v[j][l]-=alpha[k]*v[k][l];
-      }
-      norm=0.0;
-      for(l=0;l<N;l++) norm+=v[j][l]*v[j][l];
-      norm=pow(norm,.5);
-      for(l=0;l<N;l++) v[j][l]/=norm;
-    }
-  }
-  free(alpha);
-
-
-  davidson(N,v,a,b,nev,first_ev);
+  davidson(N,set0,a,b,nev,first_ev);
 
   
   printf("JOB DONE !\n");
