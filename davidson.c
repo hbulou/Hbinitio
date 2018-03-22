@@ -142,7 +142,13 @@ void davidson(int N,double **v,double a,double b,int nev,int first_ev){
 	   ------------------------------------------------------------------------------------ */
 	for(k=0;k<nev;k++){
 	  for(i=0;i<N;i++) 	t[k][i]=r[k][i]/(a-lambda[k+first_ev]);
+
+	  vec2=GramSchmidt(N,Ritz,nvec,t[k]);
+
 	}
+
+
+
 	/* --------------------------------------------------------------------------- 
 	   
 	                       GRAM-SCHMIDT
