@@ -9,6 +9,7 @@
 double dot(int N,double *vec1,double *vec2);
 
 
+#define GS_ZERO 1.0e-6
 
 
 double **GramSchmidt(int N,double **set0,int nvec0,double *set1){
@@ -22,7 +23,12 @@ double **GramSchmidt(int N,double **set0,int nvec0,double *set1){
       set1[l]-=alpha*set0[j][l];
       out[j][l]=set0[j][l];
     }
-    alpha=dot(N,set1,set1);  alpha=pow(alpha,.5);  for(l=0;l<N;l++)     out[nvec0][l]=set1[l]/alpha;
+    alpha=dot(N,set1,set1);  alpha=pow(alpha,.5);
+    if(fabs(alpha)<GS_ZERO) {
+      printf("Error in %s at line %d\n",__FILE__,__LINE__);
+      exit(0);
+    }
+    for(l=0;l<N;l++)     out[nvec0][l]=set1[l]/alpha;
   }
   return out;
 }
