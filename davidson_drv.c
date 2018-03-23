@@ -6,7 +6,7 @@
 
 double dot(int N,double *vec1,double *vec2);
 void davidson(int N,double **v,double a,double b,int nev,int first_ev);
-double **GramSchmidt(int N,double **set0,int nvec0,double *set1);
+double **GramSchmidt(int N,double **set0,int nvec0,double *set1,int *LI);
 
 #define NCHAR 1024
 
@@ -75,11 +75,11 @@ int main(int nargument,char **argument){
   double **vec2;
   for(j=0;j<nvec0;j++)      set0[j]=set_random_vector(N,j+1);
 
-
+  int IL;
   int loop;
   for(loop=1;loop<nvecini;loop++){
     set1=set_random_vector(N,1000*(j+3*loop));
-    vec2=GramSchmidt(N,set0,nvec0,set1);
+    vec2=GramSchmidt(N,set0,nvec0,set1,&IL);
     free(set1);
     for(j=0;j<nvec0;j++)      free(set0[j]);free(set0); nvec0++;   set0=malloc(nvec0*sizeof(double*));
     for(j=0;j<nvec0;j++){
