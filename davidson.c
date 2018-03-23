@@ -7,7 +7,8 @@
 
 /* -------------------------------------------------------------------------------------------------------------- */
 void diagonalization(double **A,int n,double *lambda,double **y);
-double **GramSchmidt(int N,double **set0,int nvec0,double *set1);
+double dot(int N,double *vec1,double *vec2);
+double **GramSchmidt(int N,double **set0,int nvec0,double *set1,int *LI);
 /* -------------------------------------------------------------------------------------------------------------- */
 void davidson(int N,double **v,double a,double b,int nev,int first_ev){
   int i,j,k,l;
@@ -37,7 +38,7 @@ void davidson(int N,double **v,double a,double b,int nev,int first_ev){
   int nq,iq,first_q;
   int nvecprev;
 
-  
+  int IL;
   int endloop=FALSE;
   int nvecini=  nvecini=first_ev+nev;
   int nvecmax; nvecmax=40;
@@ -142,22 +143,25 @@ void davidson(int N,double **v,double a,double b,int nev,int first_ev){
 	   Here M=(D-lambda I)^{-1}  where D is the main diagonale of A -> Jacobi Preconditionner
 	   ------------------------------------------------------------------------------------ */
 
-	int nvec2;nvec2=nvec;
 	for(i=0;i<nvec;i++) free(V[i]);free(V);
 	for(k=0;k<nev;k++){
 	  for(i=0;i<N;i++) 	t[k][i]=r[k][i]/(a-lambda[k+first_ev]);
-	  V=GramSchmidt(N,Ritz,nvec2,t[k]);
-	  for(j=0;j<nvec2;j++)      free(Ritz[j]);free(Ritz); nvec2++;   Ritz=malloc(nvec2*sizeof(double*));
-	  for(j=0;j<nvec2;j++){
-	    Ritz[j]=malloc(N*sizeof(double));
-	    for(l=0;l<N;l++) Ritz[j][l]=V[j][l];
-	    free(V[j]);
+	  V=GramSchmidt(N,Ritz,nvec,t[k],&IL);
+	  if(IL==TRUE){
+	    for(j=0;j<nvec;j++)      free(Ritz[j]);free(Ritz); nvec++;   Ritz=malloc(nvec*sizeof(double*));
+	    for(j=0;j<nvec;j++){
+	      Ritz[j]=malloc(N*sizeof(double));
+	      for(l=0;l<N;l++) Ritz[j][l]=V[j][l];
+	    }
+	  } else {
+	    printf("k=%d/%d IL= %d\n",k,nvec,IL);
 	  }
-	  free(V);
 	}
+	//if(loop==240) exit(0);
 	/* /\* PRINT BLOCK *\/ */
 	log=fopen("debug.log","a+");
 	fprintf(log,"===================================\n");
+	fprintf(log,"# nvec = %d\n",nvec);
 	/* for(l=0;l<N;l++) { */
 	/*   for(i=0;i<nvec;i++) printf("%12.6f ",V[i][l]); */
 	/*   printf("\n"); */
