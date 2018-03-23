@@ -9,7 +9,8 @@ diagonalization.o: diagonalization.c
 GramSchmidt.o: GramSchmidt.c dot.o  
 	${CC} ${CFLAGS} ${INCLUDEDIR}  $*.c -c
 
-davidson.o: diagonalization.o GramSchmidt.o davidson.c  
+
+davidson.o: diagonalization.o GramSchmidt.o dot.o davidson.c  
 	${CC} ${CFLAGS} ${INCLUDEDIR}  $*.c -c
 
 dot.o: dot.c  
