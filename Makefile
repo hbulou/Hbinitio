@@ -13,6 +13,10 @@ GramSchmidt.o: GramSchmidt.c dot.o
 davidson.o: diagonalization.o GramSchmidt.o dot.o davidson.c  
 	${CC} ${CFLAGS} ${INCLUDEDIR}  $*.c -c
 
+Conjugate_Gradient_drv: Conjugate_Gradient_drv.c
+	${CC} ${CFLAGS} ${INCLUDEDIR}   Conjugate_Gradient_drv.c -o $@ $(CPPFLAGS) $(LDFLAGS)  $(LAPACKLIB) $(BLASLIB) $(F2CLIB) -lm
+
+
 dot.o: dot.c  
 	${CC} ${CFLAGS} ${INCLUDEDIR}  $*.c -c
 
