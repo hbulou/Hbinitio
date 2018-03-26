@@ -16,6 +16,8 @@ void SteepestDescent(double **A,double *b,int N,double *x){
   double *Ax;Ax=malloc(N*sizeof(double));
   double *Ar;Ar=malloc(N*sizeof(double));
 
+
+  
   while(loop<loopmax && cvg==FALSE){
 
     for(i=0;i<N;i++){
@@ -65,7 +67,7 @@ void SteepestDescent(double **A,double *b,int N,double *x){
   else {
     printf("!!!! WARNING !!! JOB not DONE !\n");
   }
-
+  free(r);free(Ax);free(Ar);
 
 
 }
