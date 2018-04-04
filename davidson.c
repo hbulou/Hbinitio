@@ -10,9 +10,13 @@ void diagonalization(double **A,int n,double *lambda,double **y);
 double dot(int N,double *vec1,double *vec2);
 double **GramSchmidt(int N,double **set0,int nvec0,double *set1,int *LI);
 /* -------------------------------------------------------------------------------------------------------------- */
-void davidson(int N,double **v,double a,double b,int nev,int first_ev){
-  int i,j,k,l;
+void davidson(int N,double **v,double a,double b,int nev,int first_ev,double *boundary){
 
+  /* 
+     OUTPUT: the eigenvectors are given in **v.
+   */
+
+  int i,j,k,l;
   double tol=1.0e-4;
   double etol=1.0e-6;
   int nloopmax=5000;
@@ -91,7 +95,7 @@ void davidson(int N,double **v,double a,double b,int nev,int first_ev){
        ------------------------------------------------------------------ */
     for(k=0;k<nev;k++){
       for(l=0;l<N;l++) {
-	r[k][l]=(a-lambda[k+first_ev])*Ritz[k+first_ev][l];
+	r[k][l]=(a-lambda[k+first_ev])*Ritz[k+first_ev][l]-boundary[l];
 	if(l>0) 	  r[k][l]+=b*Ritz[k+first_ev][l-1];
 	if(l<N-1)   r[k][l]+=b*Ritz[k+first_ev][l+1];
       }
@@ -192,11 +196,18 @@ void davidson(int N,double **v,double a,double b,int nev,int first_ev){
 	}
 	for(i=0;i<nvecprev;i++) free(Ritz[i]);free(Ritz);
       }
-    } /* if(cvg==FALSE) */
+    } /* if(cvg==FALSE) */ 
     loop++;
     free(lambda);
     endloop=FALSE;
-    if(loop>=nloopmax || cvg==TRUE) endloop=TRUE;
+    if(loop>=nloopmax || cvg==TRUE) {
+      endloop=TRUE;
+      for(k=0;k<nev;k++){
+	for(l=0;l<N;l++) {
+	  v[k][l]=Ritz[k+first_ev][l];
+	}
+      }
+    }
     /* end of Davidson loop */
   } 
   

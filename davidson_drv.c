@@ -5,7 +5,7 @@
 
 
 double dot(int N,double *vec1,double *vec2);
-void davidson(int N,double **v,double a,double b,int nev,int first_ev);
+void davidson(int N,double **v,double a,double b,int nev,int first_ev,double *boundary);
 double **GramSchmidt(int N,double **set0,int nvec0,double *set1,int *LI);
 
 #define NCHAR 1024
@@ -69,6 +69,12 @@ int main(int nargument,char **argument){
   int i,j,k,l;
   double **v;v=malloc(nvecini*sizeof(double*)); for(i=0;i<nvecini;i++) v[i]=malloc(N*sizeof(double));
 
+  double *boundary;boundary=malloc(N*sizeof(double));
+  for(i=0;i<N;i++) boundary[i]=0.0;
+  //  boundary[0]=2.0*.1/dx2;
+
+
+  
   int nvec0,nvec1;nvec0=1;nvec1=1;
   double **set0,*set1;
   set0=malloc(nvec0*sizeof(double*));
@@ -101,8 +107,18 @@ int main(int nargument,char **argument){
 
   
   
-  davidson(N,set0,a,b,nev,first_ev);
-
+  davidson(N,set0,a,b,nev,first_ev,boundary);
+  
+  FILE *out;
+  out=fopen("wfc.dat","w+");
+  for(i=0;i<N;i++){
+    fprintf(out,"%g ",i*dx2);
+    for(j=0;j<nev;j++){
+      fprintf(out,"%g ",set0[j][i]);
+    }
+    fprintf(out,"\n");
+  }
+  fclose(out);
   
   printf("JOB DONE !\n");
 
