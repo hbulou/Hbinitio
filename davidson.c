@@ -7,6 +7,8 @@
 
 /* -------------------------------------------------------------------------------------------------------------- */
 void diagonalization(double **A,int n,double *lambda,double **y);
+double dot(int N,double *vec1,double *vec2);
+double **GramSchmidt(int N,double **set0,int nvec0,double *set1,int *LI);
 /* -------------------------------------------------------------------------------------------------------------- */
 void davidson(int N,double **v,double a,double b,int nev,int first_ev){
   int i,j,k,l;
@@ -36,7 +38,7 @@ void davidson(int N,double **v,double a,double b,int nev,int first_ev){
   int nq,iq,first_q;
   int nvecprev;
 
-  
+  int IL;
   int endloop=FALSE;
   int nvecini=  nvecini=first_ev+nev;
   int nvecmax; nvecmax=40;
@@ -140,106 +142,26 @@ void davidson(int N,double **v,double a,double b,int nev,int first_ev){
 	   M is the preconditioning matrix. It is an approximation of (A-lambdaI)^{-1}
 	   Here M=(D-lambda I)^{-1}  where D is the main diagonale of A -> Jacobi Preconditionner
 	   ------------------------------------------------------------------------------------ */
+
+	for(i=0;i<nvec;i++) free(V[i]);free(V);
 	for(k=0;k<nev;k++){
 	  for(i=0;i<N;i++) 	t[k][i]=r[k][i]/(a-lambda[k+first_ev]);
-	}
-	/* --------------------------------------------------------------------------- 
-	   
-	                       GRAM-SCHMIDT
-
-	   Gram-Schmidt process to insert |t> in the reduced subspace 
-	   From Saad's book "Numerical Methods For Large Eigenvalue Problems", p12
-	   --------------------------------------------------------------------------- */
-	/* first, one removes the Ritz vectors from t[i] --> q[i] */
-	alpha=malloc(nvec*sizeof(double));
-	for(i=0;i<nev;i++){		/* loop over the new vectors to add */
-	  for(k=0;k<nvec;k++){
-	    alpha[k]=0.0;
-	    for(l=0;l<N;l++) alpha[k]+=Ritz[k][l]*t[i][l];
-	  }
-	  for(l=0;l<N;l++){
-	    q[i][l]=t[i][l];
-	    for(k=0;k<nvec;k++) q[i][l]-=alpha[k]*Ritz[k][l];
-	  }
-	}
-	free(alpha);
-	/* one computes the norm of the first additional vector */
-	nq=0;
-	iq=0;
-	while(nq==0 && iq<nev){
-	  norm=0.0;
-	  for(l=0;l<N;l++) norm+=q[iq][l]*q[iq][l];
-	  norm=pow(norm,.5);
-	  log=fopen("debug.log","a+");fprintf(log,"norm q[%d]=%g\n",iq,norm);fclose(log);
-	  if(norm<1.0e-6) {
-	    printf("1 - WARNING in Gram-Schmidt process : q[%d]= %g\n",iq,norm);
-	    q_insert[iq]=FALSE;
-	  } else {
-	    first_q=iq;
-	    q_insert[iq]=TRUE;
-	    nq++;
-	    for(l=0;l<N;l++) q[iq][l]/=norm;
-	  }
-	  iq++;
-	}
-
-	if(nq==0) {
-	  printf("ERROR in GRAM-SCHMIDT: all <q|q>=0.0\n");
-
-	  exit(0);
-	}
-	log=fopen("debug.log","a+");fprintf(log,"first q %d ",first_q);for(i=0;i<nev;i++) fprintf(log,"iq[%d]=%d ",i,q_insert[i]);printf("\n");
-	for(i=first_q;i<nev;i++) fprintf(log,"ff %d ",i); fprintf(log,"\n");
-	for(i=first_q+1;i<nev;i++) fprintf(log,"gg %d ",i); fprintf(log,"\n");fclose(log);
-	
-	for(i=first_q+1;i<nev;i++){ 
-	  for(k=0;k<i;k++){
-	    if(q_insert[k]==TRUE){
-	      beta[k]=0.0;
-	      for(l=0;l<N;l++) beta[k]+=q[k][l]*t[i][l];
-	      for(l=0;l<N;l++){
-		q[i][l]=t[i][l];
-		for(j=0;j<i;j++) q[i][l]-=beta[j]*q[j][l];
-	      }
+	  V=GramSchmidt(N,Ritz,nvec,t[k],&IL);
+	  if(IL==TRUE){
+	    for(j=0;j<nvec;j++)      free(Ritz[j]);free(Ritz); nvec++;   Ritz=malloc(nvec*sizeof(double*));
+	    for(j=0;j<nvec;j++){
+	      Ritz[j]=malloc(N*sizeof(double));
+	      for(l=0;l<N;l++) Ritz[j][l]=V[j][l];
 	    }
-	  }
-	  norm=0.0;
-	  for(l=0;l<N;l++) norm+=q[i][l]*q[i][l];
-	  norm=pow(norm,.5);
-	  log=fopen("debug.log","a+");fprintf(log,"norm q[%d]=%g\n",i,norm);fclose(log);
-	  if(norm<1.0e-6) {
-	    printf("2 - Error in Gram-Schmidt process : q[%d]= %g nq=%d\n",i,norm,nq);
-	    q_insert[i]=FALSE;
 	  } else {
-	    nq++;
-	    q_insert[i]=TRUE;
-	    for(l=0;l<N;l++) q[i][l]/=norm;
+	    printf("k=%d/%d IL= %d\n",k,nvec,IL);
 	  }
 	}
-      
-
-	printf("%d q to insert\n",nq);
-	nvecprev=nvec;
-	nvec=nvec+nq;
-	for(i=0;i<nvecprev;i++) free(V[i]);free(V);
-	V=malloc(nvec*sizeof(double*)); for(i=0;i<nvec;i++) V[i]=malloc(N*sizeof(double));
-	for(k=0;k<nvecprev;k++) {
-	  for(l=0;l<N;l++) V[k][l]=Ritz[k][l];
-	}
-	iq=0;
-	for(k=0;k<nev;k++) {
-	  if(q_insert[k]==TRUE) {
-	    for(l=0;l<N;l++)	      V[nvecprev+iq][l]=q[k][l];
-	    iq++;
-	  }
-	}
-
-
-
-	for(i=0;i<nvecprev;i++) free(Ritz[i]);free(Ritz);
+	//if(loop==240) exit(0);
 	/* /\* PRINT BLOCK *\/ */
 	log=fopen("debug.log","a+");
 	fprintf(log,"===================================\n");
+	fprintf(log,"# nvec = %d\n",nvec);
 	/* for(l=0;l<N;l++) { */
 	/*   for(i=0;i<nvec;i++) printf("%12.6f ",V[i][l]); */
 	/*   printf("\n"); */
@@ -257,7 +179,7 @@ void davidson(int N,double **v,double a,double b,int nev,int first_ev){
 	fclose(log);
 	/* exit(0); */
 	/* /\* END OF PRINT BLOCK *\/ */
-
+	
 
 
       } else { // nvec+nev>nvecmax
