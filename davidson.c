@@ -10,7 +10,7 @@ void diagonalization(double **A,int n,double *lambda,double **y);
 double dot(int N,double *vec1,double *vec2);
 double **GramSchmidt(int N,double **set0,int nvec0,double *set1,int *LI);
 /* -------------------------------------------------------------------------------------------------------------- */
-void davidson(int N,double **v,double a,double b,int nev,int first_ev,double *boundary){
+void davidson(int N,double **v,double a,double b,int nev,int first_ev){
 
   /* 
      OUTPUT: the eigenvectors are given in **v.
@@ -95,7 +95,7 @@ void davidson(int N,double **v,double a,double b,int nev,int first_ev,double *bo
        ------------------------------------------------------------------ */
     for(k=0;k<nev;k++){
       for(l=0;l<N;l++) {
-	r[k][l]=(a-lambda[k+first_ev])*Ritz[k+first_ev][l]-boundary[l];
+	r[k][l]=(a-lambda[k+first_ev])*Ritz[k+first_ev][l];
 	if(l>0) 	  r[k][l]+=b*Ritz[k+first_ev][l-1];
 	if(l<N-1)   r[k][l]+=b*Ritz[k+first_ev][l+1];
       }
