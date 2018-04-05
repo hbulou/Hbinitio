@@ -13,6 +13,9 @@ GramSchmidt.o: GramSchmidt.c dot.o
 davidson.o: diagonalization.o GramSchmidt.o dot.o davidson.c  
 	${CC} ${CFLAGS} ${INCLUDEDIR}  $*.c -c
 
+davidson2D.o: diagonalization.o GramSchmidt.o dot.o davidson2D.c  
+	${CC} ${CFLAGS} ${INCLUDEDIR}  $*.c -c
+
 steepest_descent.o: steepest_descent.c
 	${CC} ${CFLAGS} ${INCLUDEDIR}  $*.c -c
 
@@ -30,3 +33,6 @@ dot.o: dot.c
 
 davidson_drv: davidson_drv.c davidson.o GramSchmidt.o diagonalization.o dot.o
 	${CC} ${CFLAGS} ${INCLUDEDIR}   diagonalization.o davidson.o dot.o GramSchmidt.o davidson_drv.c -o $@ $(CPPFLAGS) $(LDFLAGS)  $(LAPACKLIB) $(BLASLIB) $(F2CLIB) -lm
+
+davidson2D_drv: davidson2D_drv.c davidson2D.o GramSchmidt.o diagonalization.o dot.o
+	${CC} ${CFLAGS} ${INCLUDEDIR}   diagonalization.o davidson2D.o dot.o GramSchmidt.o davidson2D_drv.c -o $@ $(CPPFLAGS) $(LDFLAGS)  $(LAPACKLIB) $(BLASLIB) $(F2CLIB) -lm
