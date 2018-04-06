@@ -50,7 +50,7 @@ void davidson2D(int N,int M,double **v,double ax,double bx,double ay,double by,i
   double **V;V=malloc(nvec*sizeof(double*));  for(i=0;i<nvec;i++) V[i]=malloc(NM*sizeof(double));
   for(j=0;j<nvecini;j++) for(i=0;i<NM;i++) V[j][i]=v[j][i];
 
-  
+
   /* ----------------------
      Davidson loop 
   ------------------------ */
@@ -115,16 +115,16 @@ void davidson2D(int N,int M,double **v,double ax,double bx,double ay,double by,i
 	r[k][l]=(ax+ay-lambda[k+first_ev])*Ritz[k+first_ev][l]+bx*(Ritz[k+first_ev][l-1]+Ritz[k+first_ev][l+1])+by*Ritz[k+first_ev][l+N];
       for(l=N*(M-1)+1;l<=N*M-2;l++)
 	r[k][l]=(ax+ay-lambda[k+first_ev])*Ritz[k+first_ev][l]+bx*(Ritz[k+first_ev][l-1]+Ritz[k+first_ev][l+1])+by*Ritz[k+first_ev][l-N];
-      for(l=N;l<=N*(M-1);l+=N)
+      for(l=N;l<=N*(M-2);l+=N)
 	  r[k][l]=(ax+ay-lambda[k+first_ev])*Ritz[k+first_ev][l]+bx*Ritz[k+first_ev][l+1]+by*(Ritz[k+first_ev][l-N]+Ritz[k+first_ev][l+N]);	  
       for(l=2*N-1;l<=N*(M-1)-1;l+=N)
 	  r[k][l]=(ax+ay-lambda[k+first_ev])*Ritz[k+first_ev][l]+bx*Ritz[k+first_ev][l-1]+by*(Ritz[k+first_ev][l-N]+Ritz[k+first_ev][l+N]);	  
-      for(k=0;k<M-2;k++)
-	for(l=N+1+k*N;l<=2*N-2+k*N;l++)
-	  r[k][l]=(ax+ay-lambda[k+first_ev])*Ritz[k+first_ev][l]+bx*(Ritz[k+first_ev][l-1]+Ritz[k+first_ev][l+1])+by*(Ritz[k+first_ev][l-N]+Ritz[k+first_ev][l+N]);	  
-      
 
-      
+      for(i=0;i<M-2;i++) {
+	for(l=N+1+i*N;l<=2*N-2+i*N;l++){
+	  r[k][l]=(ax+ay-lambda[k+first_ev])*Ritz[k+first_ev][l]+bx*(Ritz[k+first_ev][l-1]+Ritz[k+first_ev][l+1])+by*(Ritz[k+first_ev][l-N]+Ritz[k+first_ev][l+N]);
+	}
+      }
       normr[k]=0.0;
       for(l=0;l<NM;l++)     normr[k]+=r[k][l]*r[k][l];
       normr[k]=pow(normr[k],.5);

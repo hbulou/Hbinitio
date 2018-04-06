@@ -1,3 +1,5 @@
+PLPLOTINC=-I/home/bulou/ownCloud/src/PLplot/plplot-5.10.0/examples/c -I/usr/include/plplot
+PLPLOTLIB=-lplplotd 
 CC=mpicc
 CFLAGS=-O2 -Wno-unused-result
 INCLUDEDIR   = -I./ 
@@ -34,5 +36,8 @@ dot.o: dot.c
 davidson_drv: davidson_drv.c davidson.o GramSchmidt.o diagonalization.o dot.o
 	${CC} ${CFLAGS} ${INCLUDEDIR}   diagonalization.o davidson.o dot.o GramSchmidt.o davidson_drv.c -o $@ $(CPPFLAGS) $(LDFLAGS)  $(LAPACKLIB) $(BLASLIB) $(F2CLIB) -lm
 
-davidson2D_drv: davidson2D_drv.c davidson2D.o GramSchmidt.o diagonalization.o dot.o
-	${CC} ${CFLAGS} ${INCLUDEDIR}   diagonalization.o davidson2D.o dot.o GramSchmidt.o davidson2D_drv.c -o $@ $(CPPFLAGS) $(LDFLAGS)  $(LAPACKLIB) $(BLASLIB) $(F2CLIB) -lm
+plot2D.o : plot2D.c
+	${CC} ${CFLAGS} ${INCLUDEDIR} $(PLPLOTINC) $*.c -c
+
+davidson2D_drv: davidson2D_drv.c davidson2D.o GramSchmidt.o diagonalization.o dot.o 
+	${CC} ${CFLAGS} ${INCLUDEDIR}     diagonalization.o davidson2D.o dot.o GramSchmidt.o davidson2D_drv.c -o $@ $(CPPFLAGS) $(LDFLAGS)  $(LAPACKLIB) $(BLASLIB) $(F2CLIB) $(PLPLOTLIB) -lm

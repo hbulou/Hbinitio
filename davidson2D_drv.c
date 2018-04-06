@@ -56,7 +56,7 @@ int main(int nargument,char **argument){
     - initial guess vector
   */
 
-  int nx,ny; nx=200;ny=1;
+  int nx,ny; nx=40;ny=40;
   int N; N=nx*ny;
   double Lx=M_PI;
   double Ly=M_PI;
@@ -108,8 +108,10 @@ int main(int nargument,char **argument){
   
 
   
-  
+
   davidson2D(nx,ny,set0,ax,bx,ay,by,nev,first_ev);
+
+  //plot2D();
   
   FILE *out;
   out=fopen("wfc.dat","w+");
@@ -121,7 +123,20 @@ int main(int nargument,char **argument){
     fprintf(out,"\n");
   }
   fclose(out);
-  
+
+  char *name; name=malloc(NCHAR*sizeof(char));
+  for(k=0;k<nev;k++){
+    sprintf(name,"wfc%d.mat",k);
+    out=fopen(name,"w+");
+    for(j=0;j<ny;j++){
+      for(i=0;i<nx;i++){
+	fprintf(out,"%g ",set0[k][i+nx*j]);
+      }
+      fprintf(out,"\n");
+    }
+    fclose(out);
+  }
+  free(name);
   printf("JOB DONE !\n");
 
   return 0;
