@@ -5,7 +5,7 @@
 
 
 double dot(int N,double *vec1,double *vec2);
-void davidson(int N,double **v,double a,double b,int nev,int first_ev);
+void davidson(int N,double **v,double a,double b,double *vdiag,int nev,int first_ev);
 double **GramSchmidt(int N,double **set0,int nvec0,double *set1,int *LI);
 
 #define NCHAR 1024
@@ -56,18 +56,26 @@ int main(int nargument,char **argument){
     - initial guess vector
   */
 
-  int N=200;
+  /* parameters of the finite difference discretization */
+  int N=200000;
   double L=M_PI;
+  double fac=1.0e4;
+  L=60.0*fac;
   double dx,dx2;
   dx=L/(N+1);
   dx2=dx*dx;
-  double a,b;a=1.0/dx2;b=-.5/dx2;
-  int nev;nev=4;
+  double mass=74873435.3241/(fac*fac);
+  //double mass=1000;
+  double a,b;a=1.0/(mass*dx2);b=-.5/(mass*dx2);
+
+
+  int nev;nev=12;
   int first_ev;first_ev=0;
   int nvecini;nvecini=first_ev+nev;
 
   int i,j,k,l;
   double **v;v=malloc(nvecini*sizeof(double*)); for(i=0;i<nvecini;i++) v[i]=malloc(N*sizeof(double));
+
 
 
   
@@ -102,20 +110,32 @@ int main(int nargument,char **argument){
   
 
   
-  
-  davidson(N,set0,a,b,nev,first_ev);
+  double *vdiag; vdiag=malloc(N*sizeof(double));
+  for(i=0;i<N;i++) {
+    if(fabs((i+1)*dx-L/2)<30.0*fac){
+      vdiag[i]=1.0e-2*(1.0-cos(2*M_PI*((i+1)*dx-L/2)/(60*fac))+0.4*cos(2*M_PI*((i+1)*dx-L/2)/(30*fac)))-0.00285;
+    } else {
+      vdiag[i]=100.0;
+    }
+  }
+  davidson(N,set0,a,b,vdiag,nev,first_ev);
   
   FILE *out;
   out=fopen("wfc.dat","w+");
   for(i=0;i<N;i++){
-    fprintf(out,"%g ",i*dx2);
+    fprintf(out,"%g %g ",(i+1)*dx,vdiag[i]);
     for(j=0;j<nev;j++){
       fprintf(out,"%g ",set0[j][i]);
     }
     fprintf(out,"\n");
   }
   fclose(out);
-  
+
+  /* free */
+  free(vdiag);
+  for(i=0;i<nvecini;i++) free(v[i]);free(v);
+  for(j=0;j<nvec0;j++)      free(set0[j]);free(set0);
+  /* ----------------------------------------------------------------- */
   printf("JOB DONE !\n");
 
   return 0;

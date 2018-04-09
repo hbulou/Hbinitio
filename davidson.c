@@ -10,7 +10,7 @@ void diagonalization(double **A,int n,double *lambda,double **y);
 double dot(int N,double *vec1,double *vec2);
 double **GramSchmidt(int N,double **set0,int nvec0,double *set1,int *LI);
 /* -------------------------------------------------------------------------------------------------------------- */
-void davidson(int N,double **v,double a,double b,int nev,int first_ev){
+void davidson(int N,double **v,double a,double b,double *vdiag,int nev,int first_ev){
 
   /* 
      OUTPUT: the eigenvectors are given in **v.
@@ -45,7 +45,7 @@ void davidson(int N,double **v,double a,double b,int nev,int first_ev){
   int IL;
   int endloop=FALSE;
   int nvecini=  nvecini=first_ev+nev;
-  int nvecmax; nvecmax=40;
+  int nvecmax; nvecmax=100;
   int nvec; nvec=nvecini;
   double **V;V=malloc(nvec*sizeof(double*));  for(i=0;i<nvec;i++) V[i]=malloc(N*sizeof(double));
   for(j=0;j<nvecini;j++) for(i=0;i<N;i++) V[j][i]=v[j][i];
@@ -63,9 +63,9 @@ void davidson(int N,double **v,double a,double b,int nev,int first_ev){
     T=malloc(nvec*sizeof(double*));  for(i=0;i<nvec;i++) T[i]=malloc(nvec*sizeof(double));
     for(i=0;i<nvec;i++){
       for(j=0;j<nvec;j++){
-	T[i][j]=V[i][0]*(a*V[j][0]+b*V[j][1])
-	  +V[i][N-1]*(a*V[j][N-1]+b*V[j][N-2]);
-	for(l=1;l<N-1;l++) T[i][j]+=V[i][l]*(a*V[j][l]+b*(V[j][l-1]+V[j][l+1]));
+	T[i][j]=V[i][0]*((a+vdiag[0])*V[j][0]+b*V[j][1])
+	  +V[i][N-1]*((a+vdiag[N-1])*V[j][N-1]+b*V[j][N-2]);
+	for(l=1;l<N-1;l++) T[i][j]+=V[i][l]*((a+vdiag[l])*V[j][l]+b*(V[j][l-1]+V[j][l+1]));
       }
     }
     /* -------------------------------
@@ -95,7 +95,7 @@ void davidson(int N,double **v,double a,double b,int nev,int first_ev){
        ------------------------------------------------------------------ */
     for(k=0;k<nev;k++){
       for(l=0;l<N;l++) {
-	r[k][l]=(a-lambda[k+first_ev])*Ritz[k+first_ev][l];
+	r[k][l]=(a+vdiag[l]-lambda[k+first_ev])*Ritz[k+first_ev][l];
 	if(l>0) 	  r[k][l]+=b*Ritz[k+first_ev][l-1];
 	if(l<N-1)   r[k][l]+=b*Ritz[k+first_ev][l+1];
       }
@@ -112,7 +112,7 @@ void davidson(int N,double **v,double a,double b,int nev,int first_ev){
     /* -------------------------------------------------------------------------
      print the logfile
     --------------------------------------------------------------------------- */
-    printf("loop %d nvecmax= %d\n",loop,nvecmax);
+    printf("loop %d nvecmax= %d nvec= %d\n",loop,nvecmax,nvec);
     if(loop>1){
       printf("dev= ");for(k=0;k<nev;k++)  printf("%e ",dev[k]);printf("\n");
     }
@@ -146,10 +146,9 @@ void davidson(int N,double **v,double a,double b,int nev,int first_ev){
 	   M is the preconditioning matrix. It is an approximation of (A-lambdaI)^{-1}
 	   Here M=(D-lambda I)^{-1}  where D is the main diagonale of A -> Jacobi Preconditionner
 	   ------------------------------------------------------------------------------------ */
-
-	for(i=0;i<nvec;i++) free(V[i]);free(V);
 	for(k=0;k<nev;k++){
-	  for(i=0;i<N;i++) 	t[k][i]=r[k][i]/(a-lambda[k+first_ev]);
+	  for(i=0;i<N;i++) 	t[k][i]=r[k][i]/(a+vdiag[i]-lambda[k+first_ev]);
+	  for(i=0;i<nvec;i++) free(V[i]);free(V);
 	  V=GramSchmidt(N,Ritz,nvec,t[k],&IL);
 	  if(IL==TRUE){
 	    for(j=0;j<nvec;j++)      free(Ritz[j]);free(Ritz); nvec++;   Ritz=malloc(nvec*sizeof(double*));
@@ -161,6 +160,7 @@ void davidson(int N,double **v,double a,double b,int nev,int first_ev){
 	    printf("k=%d/%d IL= %d\n",k,nvec,IL);
 	  }
 	}
+	for(j=0;j<nvec;j++)      free(Ritz[j]);free(Ritz); 
 	//if(loop==240) exit(0);
 	/* /\* PRINT BLOCK *\/ */
 	log=fopen("debug.log","a+");
@@ -183,9 +183,6 @@ void davidson(int N,double **v,double a,double b,int nev,int first_ev){
 	fclose(log);
 	/* exit(0); */
 	/* /\* END OF PRINT BLOCK *\/ */
-	
-
-
       } else { // nvec+nev>nvecmax
 	nvecprev=nvec;
 	nvec=nvecini;
@@ -202,9 +199,9 @@ void davidson(int N,double **v,double a,double b,int nev,int first_ev){
     endloop=FALSE;
     if(loop>=nloopmax || cvg==TRUE) {
       endloop=TRUE;
-      for(k=0;k<nev;k++){
+      for(k=0;k<nvecini;k++){
 	for(l=0;l<N;l++) {
-	  v[k][l]=Ritz[k+first_ev][l];
+	  v[k][l]=V[k][l];
 	}
       }
     }
